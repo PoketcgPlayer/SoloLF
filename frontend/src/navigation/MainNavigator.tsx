@@ -110,8 +110,13 @@ export default function MainNavigator() {
       />
       <Tab.Screen 
         name="Hunter" 
-        component={HunterProfileScreen}
-        options={{ headerTitle: 'Hunter Profile' }}
+        component={HunterProfileStack}
+        options={{ 
+          headerShown: false,
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={size} color={color} />
+          ),
+        }}
       />
       <Tab.Screen 
         name="Inventory" 
