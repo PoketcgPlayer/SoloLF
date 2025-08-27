@@ -186,13 +186,22 @@ export default function HunterProfileScreen() {
       <ScrollView style={styles.scrollView}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
-          <View style={[styles.avatar, { borderColor: getAvatarColor(user?.avatar_tier || 'Bronze') }]}>
-            <Ionicons 
-              name={getAvatarIcon(user?.avatar_tier || 'Bronze')} 
-              size={60} 
-              color={getAvatarColor(user?.avatar_tier || 'Bronze')} 
-            />
-          </View>
+          <TouchableOpacity style={[styles.avatar, { borderColor: getAvatarColor(user?.avatar_tier || 'Bronze') }]} onPress={handleProfilePicturePress}>
+            {loadingImage ? (
+              <ActivityIndicator size="large" color="#00d4ff" />
+            ) : profilePicture ? (
+              <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+            ) : (
+              <Ionicons 
+                name={getAvatarIcon(user?.avatar_tier || 'Bronze')} 
+                size={60} 
+                color={getAvatarColor(user?.avatar_tier || 'Bronze')} 
+              />
+            )}
+            <View style={styles.editBadge}>
+              <Ionicons name="camera" size={16} color="#fff" />
+            </View>
+          </TouchableOpacity>
           <Text style={styles.username}>{user?.username}</Text>
           <Text style={styles.hunterRank}>{user?.avatar_tier} Rank Hunter</Text>
           <View style={styles.levelContainer}>
