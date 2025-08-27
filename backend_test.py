@@ -446,6 +446,273 @@ class SoloLevelingAPITester:
         
         return True
 
+    def test_achievements_system(self):
+        """Test achievements system functionality"""
+        print_test_header("Achievements System")
+        
+        if not self.auth_token:
+            self.assert_test(False, "", "No auth token available for achievements test")
+            return False
+        
+        # Test getting all achievements
+        response = self.make_request('GET', '/achievements')
+        
+        if response is None:
+            self.assert_test(False, "", "Achievements endpoint unreachable")
+            return False
+        
+        success = self.assert_test(response.status_code == 200, 
+                                 "Get all achievements successful", 
+                                 f"Get achievements failed with status {response.status_code}: {response.text}")
+        
+        if success:
+            achievements = response.json()
+            
+            achievement_tests = [
+                (isinstance(achievements, list), "Achievements returned as list", "Achievements not returned as list"),
+                (len(achievements) > 0, "At least one achievement exists", "No achievements found"),
+                (all('name' in a for a in achievements), "All achievements have names", "Some achievements missing names"),
+                (all('description' in a for a in achievements), "All achievements have descriptions", "Some achievements missing descriptions"),
+                (all('category' in a for a in achievements), "All achievements have categories", "Some achievements missing categories"),
+                (all('xp_reward' in a for a in achievements), "All achievements have XP rewards", "Some achievements missing XP rewards")
+            ]
+            
+            for condition, success_msg, error_msg in achievement_tests:
+                self.assert_test(condition, success_msg, error_msg)
+            
+            if achievements:
+                print_info(f"Found {len(achievements)} achievements")
+                print_info(f"Sample achievement: {achievements[0].get('name')} - {achievements[0].get('description')}")
+                
+                # Store achievement for later testing
+                self.test_achievement = achievements[0]
+        
+        # Test getting user achievements
+        user_achievements_response = self.make_request('GET', '/achievements/user')
+        
+        if user_achievements_response is None:
+            self.assert_test(False, "", "User achievements endpoint unreachable")
+            return False
+        
+        user_success = self.assert_test(user_achievements_response.status_code == 200, 
+                                      "Get user achievements successful", 
+                                      f"Get user achievements failed with status {user_achievements_response.status_code}: {user_achievements_response.text}")
+        
+        if user_success:
+            user_achievements = user_achievements_response.json()
+            
+            user_achievement_tests = [
+                (isinstance(user_achievements, list), "User achievements returned as list", "User achievements not returned as list"),
+                (all('achievement_id' in ua for ua in user_achievements), "All user achievements have achievement_id", "Some user achievements missing achievement_id"),
+                (all('current_progress' in ua for ua in user_achievements), "All user achievements have progress", "Some user achievements missing progress"),
+                (all('completed' in ua for ua in user_achievements), "All user achievements have completion status", "Some user achievements missing completion status")
+            ]
+            
+            for condition, success_msg, error_msg in user_achievement_tests:
+                self.assert_test(condition, success_msg, error_msg)
+            
+            print_info(f"User has progress on {len(user_achievements)} achievements")
+        
+        return success and user_success
+
+    def test_settings_system(self):
+        """Test user settings functionality"""
+        print_test_header("Settings System")
+        
+        if not self.auth_token:
+            self.assert_test(False, "", "No auth token available for settings test")
+            return False
+        
+        # Test getting user settings (should create defaults if none exist)
+        response = self.make_request('GET', '/settings')
+        
+        if response is None:
+            self.assert_test(False, "", "Settings endpoint unreachable")
+            return False
+        
+        success = self.assert_test(response.status_code == 200, 
+                                 "Get user settings successful", 
+                                 f"Get settings failed with status {response.status_code}: {response.text}")
+        
+        if success:
+            settings = response.json()
+            
+            # Test default settings structure
+            expected_settings = [
+                'notification_quest_reminders',
+                'notification_level_up', 
+                'notification_achievement_unlock',
+                'privacy_profile_visible',
+                'privacy_stats_visible',
+                'app_theme',
+                'app_units',
+                'app_language'
+            ]
+            
+            settings_tests = [
+                (isinstance(settings, dict), "Settings returned as object", "Settings not returned as object"),
+                (all(field in settings for field in expected_settings), "All expected settings fields present", f"Missing settings fields: {[f for f in expected_settings if f not in settings]}"),
+                (settings.get('app_theme') == 'dark', "Default theme is dark", f"Default theme is {settings.get('app_theme')}, expected dark"),
+                (settings.get('app_units') == 'metric', "Default units are metric", f"Default units are {settings.get('app_units')}, expected metric"),
+                (settings.get('notification_quest_reminders') == True, "Quest reminders enabled by default", "Quest reminders not enabled by default")
+            ]
+            
+            for condition, success_msg, error_msg in settings_tests:
+                self.assert_test(condition, success_msg, error_msg)
+            
+            print_info(f"Settings: Theme={settings.get('app_theme')}, Units={settings.get('app_units')}, Language={settings.get('app_language')}")
+        
+        # Test updating settings
+        update_data = {
+            "app_theme": "light",
+            "notification_quest_reminders": False,
+            "app_units": "imperial"
+        }
+        
+        update_response = self.make_request('PUT', '/settings', update_data)
+        
+        if update_response is None:
+            self.assert_test(False, "", "Settings update endpoint unreachable")
+            return False
+        
+        update_success = self.assert_test(update_response.status_code == 200, 
+                                        "Settings update successful", 
+                                        f"Settings update failed with status {update_response.status_code}: {update_response.text}")
+        
+        if update_success:
+            # Verify settings were updated
+            verify_response = self.make_request('GET', '/settings')
+            
+            if verify_response and verify_response.status_code == 200:
+                updated_settings = verify_response.json()
+                
+                update_tests = [
+                    (updated_settings.get('app_theme') == 'light', "Theme updated to light", f"Theme is {updated_settings.get('app_theme')}, expected light"),
+                    (updated_settings.get('notification_quest_reminders') == False, "Quest reminders disabled", f"Quest reminders is {updated_settings.get('notification_quest_reminders')}, expected False"),
+                    (updated_settings.get('app_units') == 'imperial', "Units updated to imperial", f"Units is {updated_settings.get('app_units')}, expected imperial")
+                ]
+                
+                for condition, success_msg, error_msg in update_tests:
+                    self.assert_test(condition, success_msg, error_msg)
+                
+                print_info(f"Updated settings: Theme={updated_settings.get('app_theme')}, Quest reminders={updated_settings.get('notification_quest_reminders')}")
+            else:
+                self.assert_test(False, "", "Failed to verify settings update")
+        
+        return success and update_success
+
+    def test_profile_picture_system(self):
+        """Test profile picture upload, retrieval, and deletion"""
+        print_test_header("Profile Picture System")
+        
+        if not self.auth_token:
+            self.assert_test(False, "", "No auth token available for profile picture test")
+            return False
+        
+        # Create a small test image (1x1 pixel PNG in base64)
+        import base64
+        
+        # Minimal PNG image data (1x1 transparent pixel)
+        png_data = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77mgAAAABJRU5ErkJggg==')
+        
+        # Test file upload
+        files = {'file': ('test.png', png_data, 'image/png')}
+        
+        # For file upload, we need to use requests directly with files parameter
+        import requests
+        url = f"{self.base_url}/profile-picture/upload"
+        headers = {'Authorization': f"Bearer {self.auth_token}"}
+        
+        try:
+            upload_response = requests.post(url, files=files, headers=headers, timeout=30)
+        except requests.exceptions.RequestException as e:
+            self.assert_test(False, "", f"Profile picture upload request failed: {str(e)}")
+            return False
+        
+        success = self.assert_test(upload_response.status_code == 200, 
+                                 "Profile picture upload successful", 
+                                 f"Upload failed with status {upload_response.status_code}: {upload_response.text}")
+        
+        if success:
+            upload_result = upload_response.json()
+            self.assert_test('message' in upload_result, 
+                           "Upload response contains message", 
+                           "Upload response missing message")
+            
+            print_info("Profile picture uploaded successfully")
+        
+        # Test getting profile picture
+        get_response = self.make_request('GET', '/profile-picture')
+        
+        if get_response is None:
+            self.assert_test(False, "", "Get profile picture endpoint unreachable")
+            return False
+        
+        get_success = self.assert_test(get_response.status_code == 200, 
+                                     "Get profile picture successful", 
+                                     f"Get profile picture failed with status {get_response.status_code}: {get_response.text}")
+        
+        if get_success:
+            picture_data = get_response.json()
+            
+            picture_tests = [
+                ('profile_picture' in picture_data, "Response contains profile picture data", "Missing profile picture data"),
+                ('content_type' in picture_data, "Response contains content type", "Missing content type"),
+                (picture_data.get('content_type') == 'image/png', "Content type is image/png", f"Content type is {picture_data.get('content_type')}, expected image/png")
+            ]
+            
+            for condition, success_msg, error_msg in picture_tests:
+                self.assert_test(condition, success_msg, error_msg)
+            
+            print_info(f"Retrieved profile picture: {picture_data.get('content_type')}")
+        
+        # Test deleting profile picture
+        delete_response = self.make_request('DELETE', '/profile-picture')
+        
+        if delete_response is None:
+            self.assert_test(False, "", "Delete profile picture endpoint unreachable")
+            return False
+        
+        delete_success = self.assert_test(delete_response.status_code == 200, 
+                                        "Profile picture deletion successful", 
+                                        f"Delete failed with status {delete_response.status_code}: {delete_response.text}")
+        
+        if delete_success:
+            delete_result = delete_response.json()
+            self.assert_test('message' in delete_result, 
+                           "Delete response contains message", 
+                           "Delete response missing message")
+            
+            # Verify picture was deleted
+            verify_response = self.make_request('GET', '/profile-picture')
+            
+            if verify_response:
+                verify_success = self.assert_test(verify_response.status_code == 404, 
+                                                "Profile picture not found after deletion", 
+                                                f"Profile picture still exists after deletion: {verify_response.status_code}")
+                
+                if verify_success:
+                    print_info("Profile picture successfully deleted")
+            else:
+                self.assert_test(False, "", "Failed to verify profile picture deletion")
+        
+        # Test file validation - invalid file type
+        invalid_files = {'file': ('test.txt', b'not an image', 'text/plain')}
+        
+        try:
+            invalid_response = requests.post(url, files=invalid_files, headers=headers, timeout=30)
+            
+            validation_success = self.assert_test(invalid_response.status_code == 400, 
+                                                "Invalid file type rejected", 
+                                                f"Invalid file type returned {invalid_response.status_code}, expected 400")
+            
+            if validation_success:
+                print_info("File type validation working correctly")
+        except requests.exceptions.RequestException as e:
+            self.assert_test(False, "", f"File validation test request failed: {str(e)}")
+        
+        return success and get_success and delete_success
+
     def test_authentication_protection(self):
         """Test that protected routes require authentication"""
         print_test_header("Authentication Protection")
@@ -457,7 +724,13 @@ class SoloLevelingAPITester:
         protected_endpoints = [
             ('/user/profile', 'GET'),
             ('/quests', 'GET'),
-            ('/quests/daily/generate', 'POST')
+            ('/quests/daily/generate', 'POST'),
+            ('/achievements', 'GET'),
+            ('/achievements/user', 'GET'),
+            ('/settings', 'GET'),
+            ('/settings', 'PUT'),
+            ('/profile-picture', 'GET'),
+            ('/profile-picture', 'DELETE')
         ]
         
         success = True
