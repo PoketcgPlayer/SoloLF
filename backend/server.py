@@ -241,6 +241,9 @@ async def register(user_data: UserCreate):
     result = await db.users.insert_one(user_doc)
     user_id = str(result.inserted_id)
     
+    # Create default settings for new user
+    await create_user_settings(ObjectId(user_id))
+    
     # Generate daily quests for new user
     await generate_daily_quests(user_id)
     
