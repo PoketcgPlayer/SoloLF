@@ -690,6 +690,154 @@ async def create_user_settings(user_id: ObjectId):
     }
     await db.user_settings.insert_one(settings)
 
+# Achievements Routes
+@api_router.get("/achievements", response_model=List[Achievement])
+async def get_achievements(current_user = Depends(get_current_user)):
+    """Get all available achievements"""
+    achievements = await db.achievements.find({}).to_list(1000)
+    
+    achievement_list = []
+    for achievement in achievements:
+        achievement_list.append(Achievement(
+            id=str(achievement['_id']),
+            name=achievement['name'],
+            description=achievement['description'],
+            category=achievement['category'],
+            requirement_type=achievement['requirement_type'],
+            requirement_value=achievement['requirement_value'],
+            xp_reward=achievement['xp_reward'],
+            gold_reward=achievement['gold_reward'],
+            icon=achievement['icon'],
+            rarity=achievement['rarity'],
+            created_at=achievement['created_at']
+        ))
+    
+    return achievement_list
+
+@api_router.get("/achievements/user", response_model=List[UserAchievement])
+async def get_user_achievements(current_user = Depends(get_current_user)):
+    """Get user's achievement progress"""
+    user_achievements = await db.user_achievements.find({
+        "user_id": current_user['_id']
+    }).to_list(1000)
+    
+    ua_list = []
+    for ua in user_achievements:
+        ua_list.append(UserAchievement(
+            id=str(ua['_id']),
+            user_id=str(ua['user_id']),
+            achievement_id=str(ua['achievement_id']),
+            unlocked_at=ua.get('unlocked_at'),
+            current_progress=ua['current_progress'],
+            completed=ua['completed']
+        ))
+    
+    return ua_list
+
+# Settings Routes
+@api_router.get("/settings")
+async def get_user_settings(current_user = Depends(get_current_user)):
+    """Get user settings"""
+    settings = await db.user_settings.find_one({"user_id": current_user['_id']})
+    
+    if not settings:
+        # Create default settings if they don't exist
+        await create_user_settings(current_user['_id'])
+        settings = await db.user_settings.find_one({"user_id": current_user['_id']})
+    
+    return UserSettings(
+        notification_quest_reminders=settings['notification_quest_reminders'],
+        notification_level_up=settings['notification_level_up'],
+        notification_achievement_unlock=settings['notification_achievement_unlock'],
+        privacy_profile_visible=settings['privacy_profile_visible'],
+        privacy_stats_visible=settings['privacy_stats_visible'],
+        app_theme=settings['app_theme'],
+        app_units=settings['app_units'],
+        app_language=settings['app_language']
+    )
+
+@api_router.put("/settings")
+async def update_user_settings(settings_update: SettingsUpdate, current_user = Depends(get_current_user)):
+    """Update user settings"""
+    update_data = {}
+    
+    # Only update fields that are provided
+    for field, value in settings_update.dict(exclude_unset=True).items():
+        if value is not None:
+            update_data[field] = value
+    
+    if update_data:
+        update_data["updated_at"] = datetime.utcnow()
+        await db.user_settings.update_one(
+            {"user_id": current_user['_id']},
+            {"$set": update_data},
+            upsert=True
+        )
+    
+    return {"message": "Settings updated successfully"}
+
+# Profile Picture Routes  
+from fastapi import UploadFile, File
+import base64
+
+@api_router.post("/profile-picture/upload")
+async def upload_profile_picture(file: UploadFile = File(...), current_user = Depends(get_current_user)):
+    """Upload profile picture"""
+    # Validate file type
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    # Validate file size (5MB limit)
+    file_size = 0
+    content = await file.read()
+    file_size = len(content)
+    
+    if file_size > 5 * 1024 * 1024:  # 5MB
+        raise HTTPException(status_code=400, detail="File size too large. Maximum 5MB allowed.")
+    
+    # Convert to base64 for storage in MongoDB
+    file_base64 = base64.b64encode(content).decode('utf-8')
+    
+    # Update user profile with image data
+    await db.users.update_one(
+        {"_id": current_user['_id']},
+        {"$set": {
+            "profile_picture": file_base64,
+            "profile_picture_type": file.content_type,
+            "profile_picture_updated": datetime.utcnow()
+        }}
+    )
+    
+    return {"message": "Profile picture uploaded successfully"}
+
+@api_router.get("/profile-picture")
+async def get_profile_picture(current_user = Depends(get_current_user)):
+    """Get user's profile picture"""
+    user = await db.users.find_one({"_id": current_user['_id']})
+    
+    if not user.get('profile_picture'):
+        raise HTTPException(status_code=404, detail="No profile picture found")
+    
+    return {
+        "profile_picture": user['profile_picture'],
+        "content_type": user.get('profile_picture_type', 'image/jpeg'),
+        "updated_at": user.get('profile_picture_updated')
+    }
+
+@api_router.delete("/profile-picture")
+async def delete_profile_picture(current_user = Depends(get_current_user)):
+    """Delete user's profile picture"""
+    await db.users.update_one(
+        {"_id": current_user['_id']},
+        {"$unset": {
+            "profile_picture": "",
+            "profile_picture_type": "",
+            "profile_picture_updated": ""
+        }}
+    )
+    
+    return {"message": "Profile picture deleted successfully"}
+
 # Health check
 @api_router.get("/health")
 async def health_check():
