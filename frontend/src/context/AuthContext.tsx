@@ -128,7 +128,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.ok) {
         try {
-          return await response.json();
+          const userData = await response.json();
+          // Add getIdToken method to user object
+          return {
+            ...userData,
+            getIdToken: async () => {
+              return await StorageUtils.getItem('auth_token');
+            }
+          };
         } catch (jsonError) {
           console.error('Error parsing profile response:', jsonError);
           return null;
