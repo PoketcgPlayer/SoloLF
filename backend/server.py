@@ -477,6 +477,219 @@ async def reward_user(user_id: ObjectId, xp_reward: int, gold_reward: int):
         {"$set": update_data}
     )
 
+# Achievement System Functions
+async def initialize_achievements():
+    """Initialize default achievements in the database"""
+    achievements = [
+        # Workout Achievements
+        {
+            "name": "First Steps",
+            "description": "Complete your first workout",
+            "category": "workout",
+            "requirement_type": "total_workouts",
+            "requirement_value": 1,
+            "xp_reward": 50,
+            "gold_reward": 25,
+            "icon": "footsteps",
+            "rarity": "common",
+            "created_at": datetime.utcnow()
+        },
+        {
+            "name": "Push-up Champion",
+            "description": "Complete 100 push-ups in total",
+            "category": "exercise",
+            "requirement_type": "push_ups_total",
+            "requirement_value": 100,
+            "xp_reward": 100,
+            "gold_reward": 50,
+            "icon": "fitness",
+            "rarity": "rare",
+            "created_at": datetime.utcnow()
+        },
+        {
+            "name": "Marathon Runner",
+            "description": "Run a total of 26 miles",
+            "category": "exercise",
+            "requirement_type": "running_total",
+            "requirement_value": 26,
+            "xp_reward": 200,
+            "gold_reward": 100,
+            "icon": "walk",
+            "rarity": "epic",
+            "created_at": datetime.utcnow()
+        },
+        
+        # Quest Achievements
+        {
+            "name": "Quest Rookie",
+            "description": "Complete 10 quests",
+            "category": "quest",
+            "requirement_type": "total_quests_completed",
+            "requirement_value": 10,
+            "xp_reward": 75,
+            "gold_reward": 40,
+            "icon": "trophy",
+            "rarity": "common",
+            "created_at": datetime.utcnow()
+        },
+        {
+            "name": "Streak Master",
+            "description": "Maintain a 7-day quest completion streak",
+            "category": "streak",
+            "requirement_type": "current_streak",
+            "requirement_value": 7,
+            "xp_reward": 150,
+            "gold_reward": 75,
+            "icon": "flame",
+            "rarity": "rare",
+            "created_at": datetime.utcnow()
+        },
+        {
+            "name": "Dedicated Hunter",
+            "description": "Complete 50 quests",
+            "category": "quest",
+            "requirement_type": "total_quests_completed",
+            "requirement_value": 50,
+            "xp_reward": 250,
+            "gold_reward": 125,
+            "icon": "medal",
+            "rarity": "epic",
+            "created_at": datetime.utcnow()
+        },
+        
+        # Level Achievements
+        {
+            "name": "Novice Hunter",
+            "description": "Reach level 5",
+            "category": "level",
+            "requirement_type": "level",
+            "requirement_value": 5,
+            "xp_reward": 100,
+            "gold_reward": 50,
+            "icon": "shield",
+            "rarity": "common",
+            "created_at": datetime.utcnow()
+        },
+        {
+            "name": "Elite Hunter",
+            "description": "Reach level 20",
+            "category": "level",
+            "requirement_type": "level",
+            "requirement_value": 20,
+            "xp_reward": 300,
+            "gold_reward": 150,
+            "icon": "star",
+            "rarity": "epic",
+            "created_at": datetime.utcnow()
+        },
+        {
+            "name": "Shadow Monarch",
+            "description": "Reach level 50 and unlock Shadow tier",
+            "category": "level",
+            "requirement_type": "level",
+            "requirement_value": 50,
+            "xp_reward": 1000,
+            "gold_reward": 500,
+            "icon": "flash",
+            "rarity": "legendary",
+            "created_at": datetime.utcnow()
+        }
+    ]
+    
+    # Check if achievements already exist
+    existing_achievements = await db.achievements.count_documents({})
+    if existing_achievements == 0:
+        await db.achievements.insert_many(achievements)
+        print("✅ Achievements initialized in database")
+
+async def check_user_achievements(user_id: ObjectId, user_data: dict):
+    """Check and unlock achievements for a user"""
+    # Get all achievements
+    all_achievements = await db.achievements.find({}).to_list(1000)
+    
+    # Get user's current achievements
+    user_achievements = await db.user_achievements.find({
+        "user_id": user_id
+    }).to_list(1000)
+    
+    completed_achievement_ids = {ua["achievement_id"] for ua in user_achievements if ua["completed"]}
+    
+    newly_unlocked = []
+    
+    for achievement in all_achievements:
+        achievement_id = achievement["_id"]
+        if achievement_id in completed_achievement_ids:
+            continue
+            
+        # Check if user meets requirement
+        requirement_type = achievement["requirement_type"]
+        requirement_value = achievement["requirement_value"]
+        current_value = 0
+        
+        if requirement_type == "total_workouts":
+            current_value = user_data.get("total_workouts", 0)
+        elif requirement_type == "total_quests_completed":
+            current_value = user_data.get("total_quests_completed", 0)
+        elif requirement_type == "current_streak":
+            current_value = user_data.get("current_streak", 0)
+        elif requirement_type == "level":
+            current_value = user_data.get("level", 1)
+        elif requirement_type in ["push_ups_total", "running_total"]:
+            # Get exercise totals from workout logs
+            pipeline = [
+                {"$match": {"user_id": user_id, "exercise_type": requirement_type.replace("_total", "")}},
+                {"$group": {"_id": None, "total": {"$sum": "$value"}}}
+            ]
+            result = await db.workout_logs.aggregate(pipeline).to_list(1)
+            current_value = result[0]["total"] if result else 0
+        
+        # Update or create user achievement progress
+        existing_ua = next((ua for ua in user_achievements if ua["achievement_id"] == achievement_id), None)
+        
+        if existing_ua:
+            # Update progress
+            await db.user_achievements.update_one(
+                {"_id": existing_ua["_id"]},
+                {"$set": {
+                    "current_progress": current_value,
+                    "completed": current_value >= requirement_value,
+                    "unlocked_at": datetime.utcnow() if current_value >= requirement_value else existing_ua.get("unlocked_at")
+                }}
+            )
+        else:
+            # Create new user achievement
+            user_achievement = {
+                "user_id": user_id,
+                "achievement_id": achievement_id,
+                "current_progress": current_value,
+                "completed": current_value >= requirement_value,
+                "unlocked_at": datetime.utcnow() if current_value >= requirement_value else None
+            }
+            await db.user_achievements.insert_one(user_achievement)
+        
+        # Track newly unlocked achievements
+        if current_value >= requirement_value and achievement_id not in completed_achievement_ids:
+            newly_unlocked.append(achievement)
+    
+    return newly_unlocked
+
+async def create_user_settings(user_id: ObjectId):
+    """Create default settings for a new user"""
+    settings = {
+        "user_id": user_id,
+        "notification_quest_reminders": True,
+        "notification_level_up": True,
+        "notification_achievement_unlock": True,
+        "privacy_profile_visible": True,
+        "privacy_stats_visible": True,
+        "app_theme": "dark",
+        "app_units": "metric",
+        "app_language": "en",
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    await db.user_settings.insert_one(settings)
+
 # Health check
 @api_router.get("/health")
 async def health_check():
