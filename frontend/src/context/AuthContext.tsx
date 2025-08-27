@@ -18,6 +18,7 @@ interface User {
   total_workouts: number;
   current_streak: number;
   avatar_tier: string;
+  getIdToken: () => Promise<string | null>;
 }
 
 interface AuthContextType {
