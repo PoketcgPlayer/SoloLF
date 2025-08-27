@@ -27,7 +27,7 @@ const StorageUtils = {
       }
     } else {
       try {
-        const * as SecureStore from 'expo-secure-store';
+        const SecureStore = require('expo-secure-store');
         return await SecureStore.getItemAsync(key);
       } catch (error) {
         console.warn('SecureStore not available:', error);
