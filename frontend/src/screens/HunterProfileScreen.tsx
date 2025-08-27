@@ -30,7 +30,7 @@ export default function HunterProfileScreen() {
       const token = await user?.getIdToken();
       if (!token) return;
 
-      const response = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/profile-picture`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/profile-picture`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
