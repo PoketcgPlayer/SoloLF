@@ -1,12 +1,54 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import QuestBoardScreen from '../screens/QuestBoardScreen';
 import HunterProfileScreen from '../screens/HunterProfileScreen';
 import InventoryScreen from '../screens/InventoryScreen';
 import WorkoutDungeonScreen from '../screens/WorkoutDungeonScreen';
+import AchievementsScreen from '../screens/AchievementsScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+// Stack navigator for Hunter Profile tab
+function HunterProfileStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="HunterProfile" 
+        component={HunterProfileScreen}
+        options={{ 
+          headerTitle: 'Hunter Profile',
+          headerStyle: { backgroundColor: '#111' },
+          headerTitleStyle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+          headerTintColor: '#00d4ff',
+        }}
+      />
+      <Stack.Screen 
+        name="Achievements" 
+        component={AchievementsScreen}
+        options={{ 
+          headerTitle: 'Achievements',
+          headerStyle: { backgroundColor: '#111' },
+          headerTitleStyle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+          headerTintColor: '#00d4ff',
+        }}
+      />
+      <Stack.Screen 
+        name="Settings" 
+        component={SettingsScreen}
+        options={{ 
+          headerTitle: 'Settings',
+          headerStyle: { backgroundColor: '#111' },
+          headerTitleStyle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+          headerTintColor: '#00d4ff',
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
 
 export default function MainNavigator() {
   return (
