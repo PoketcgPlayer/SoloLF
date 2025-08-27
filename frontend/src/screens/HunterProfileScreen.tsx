@@ -293,13 +293,13 @@ export default function HunterProfileScreen() {
 
         {/* Account Actions */}
         <View style={styles.actionsSection}>
-          <TouchableOpacity style={styles.actionButton} onPress={() => Alert.alert('Coming Soon', 'Settings feature coming soon!')}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('Settings' as never)}>
             <Ionicons name="settings" size={20} color="#00d4ff" />
             <Text style={styles.actionButtonText}>Settings</Text>
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.actionButton} onPress={() => Alert.alert('Coming Soon', 'Achievements feature coming soon!')}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('Achievements' as never)}>
             <Ionicons name="medal" size={20} color="#00d4ff" />
             <Text style={styles.actionButtonText}>Achievements</Text>
             <Ionicons name="chevron-forward" size={20} color="#666" />
