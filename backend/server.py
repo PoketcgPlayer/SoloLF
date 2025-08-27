@@ -99,6 +99,49 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+# Achievement Models
+class Achievement(BaseModel):
+    id: str
+    name: str
+    description: str
+    category: str
+    requirement_type: str
+    requirement_value: int
+    xp_reward: int
+    gold_reward: int
+    icon: str
+    rarity: str
+    created_at: datetime
+
+class UserAchievement(BaseModel):
+    id: str
+    user_id: str
+    achievement_id: str
+    unlocked_at: datetime
+    current_progress: int
+    completed: bool
+
+# Settings Models
+class UserSettings(BaseModel):
+    notification_quest_reminders: bool = True
+    notification_level_up: bool = True
+    notification_achievement_unlock: bool = True
+    privacy_profile_visible: bool = True
+    privacy_stats_visible: bool = True
+    app_theme: str = "dark"
+    app_units: str = "metric"
+    app_language: str = "en"
+
+class SettingsUpdate(BaseModel):
+    notification_quest_reminders: Optional[bool] = None
+    notification_level_up: Optional[bool] = None
+    notification_achievement_unlock: Optional[bool] = None
+    privacy_profile_visible: Optional[bool] = None
+    privacy_stats_visible: Optional[bool] = None
+    app_theme: Optional[str] = None
+    app_units: Optional[str] = None
+    app_language: Optional[str] = None
+
 # Helper Functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
