@@ -126,11 +126,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (response.ok) {
-        return await response.json();
+        try {
+          return await response.json();
+        } catch (jsonError) {
+          console.error('Error parsing profile response:', jsonError);
+          return null;
+        }
+      } else {
+        // Handle error response
+        try {
+          const errorData = await response.json();
+          console.error('Profile fetch failed:', errorData.detail || 'Failed to fetch profile');
+        } catch (jsonError) {
+          console.error('Profile fetch failed with status:', response.status);
+        }
+        return null;
       }
-      return null;
     } catch (error) {
-      console.error('Failed to fetch user profile:', error);
+      console.error('Profile fetch network error:', error);
       return null;
     }
   };
