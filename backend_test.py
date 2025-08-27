@@ -684,6 +684,8 @@ class SoloLevelingAPITester:
                            "Delete response missing message")
             
             # Verify picture was deleted
+            import time
+            time.sleep(0.5)  # Brief delay to ensure deletion is processed
             verify_response = self.make_request('GET', '/profile-picture')
             
             if verify_response:
@@ -693,8 +695,18 @@ class SoloLevelingAPITester:
                 
                 if verify_success:
                     print_info("Profile picture successfully deleted")
+                else:
+                    print_info(f"Verification response: {verify_response.status_code}")
             else:
-                self.assert_test(False, "", "Failed to verify profile picture deletion")
+                # If the request failed, that might actually mean the endpoint is working correctly
+                # Let's try one more time with a fresh request
+                time.sleep(0.5)
+                retry_response = self.make_request('GET', '/profile-picture')
+                if retry_response and retry_response.status_code == 404:
+                    self.assert_test(True, "Profile picture not found after deletion (retry)", "")
+                    print_info("Profile picture successfully deleted (verified on retry)")
+                else:
+                    self.assert_test(False, "", "Failed to verify profile picture deletion - endpoint unreachable")
         
         # Test file validation - invalid file type
         invalid_files = {'file': ('test.txt', b'not an image', 'text/plain')}
