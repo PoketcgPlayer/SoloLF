@@ -12,7 +12,7 @@ import string
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://quest-workout-1.preview.emergentagent.com/api"
+BASE_URL = "https://app-finisher-1.preview.emergentagent.com/api"
 TEST_USER_EMAIL = f"hunter_{random.randint(1000, 9999)}@shadowguild.com"
 TEST_USER_USERNAME = f"ShadowHunter_{random.randint(1000, 9999)}"
 TEST_USER_PASSWORD = "StrongPassword123!"
