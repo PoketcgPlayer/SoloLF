@@ -147,7 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.ok) {
         const { access_token } = await response.json();
-        await SecureStore.setItemAsync('auth_token', access_token);
+        await StorageUtils.setItem('auth_token', access_token);
         
         const userData = await fetchUserProfile(access_token);
         if (userData) {
@@ -175,7 +175,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.ok) {
         const { access_token } = await response.json();
-        await SecureStore.setItemAsync('auth_token', access_token);
+        await StorageUtils.setItem('auth_token', access_token);
         
         const userData = await fetchUserProfile(access_token);
         if (userData) {
@@ -193,7 +193,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await SecureStore.deleteItemAsync('auth_token');
+      await StorageUtils.deleteItem('auth_token');
       setUser(null);
       setIsAuthenticated(false);
     } catch (error) {
@@ -203,7 +203,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshUser = async () => {
     try {
-      const token = await SecureStore.getItemAsync('auth_token');
+      const token = await StorageUtils.getItem('auth_token');
       if (token) {
         const userData = await fetchUserProfile(token);
         if (userData) {
