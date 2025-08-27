@@ -98,19 +98,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkAuthStatus = async () => {
     try {
-      const token = await SecureStore.getItemAsync('auth_token');
+      const token = await StorageUtils.getItem('auth_token');
       if (token) {
         const userData = await fetchUserProfile(token);
         if (userData) {
           setUser(userData);
           setIsAuthenticated(true);
         } else {
-          await SecureStore.deleteItemAsync('auth_token');
+          await StorageUtils.deleteItem('auth_token');
         }
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      await SecureStore.deleteItemAsync('auth_token');
+      await StorageUtils.deleteItem('auth_token');
     } finally {
       setLoading(false);
     }
