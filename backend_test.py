@@ -772,6 +772,9 @@ class SoloLevelingAPITester:
             ("Daily Quest Generation", self.test_daily_quest_generation),
             ("Workout Logging & Quest Progress", self.test_workout_logging),
             ("XP & Leveling System", self.test_xp_and_leveling),
+            ("Achievements System", self.test_achievements_system),
+            ("Settings System", self.test_settings_system),
+            ("Profile Picture System", self.test_profile_picture_system),
             ("Authentication Protection", self.test_authentication_protection)
         ]
         
