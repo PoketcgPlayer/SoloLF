@@ -269,8 +269,170 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+  - task: "Achievements System Backend"
+    implemented: false
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need to implement achievements system with different categories, tracking, and API endpoints"
+
+  - task: "Settings System Backend"
+    implemented: false
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need to implement user settings with notifications, privacy, and preferences"
+
+  - task: "Profile Picture System Backend"
+    implemented: false
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need to implement file upload handling and profile picture storage"
+
+frontend:
+  - task: "Authentication Flow & JWT Storage"
+    implemented: true
+    working: "unknown"
+    file: "/app/frontend/src/context/AuthContext.tsx, /app/frontend/src/navigation/AuthStack.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "React context for auth state, secure token storage, login/register screens with dark RPG UI"
+
+  - task: "Main Navigation & Protected Routes"
+    implemented: true
+    working: "unknown"
+    file: "/app/frontend/src/navigation/MainNavigator.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Bottom tab navigation with 4 main screens: Quest Board, Workout Dungeon, Hunter Profile, Inventory"
+
+  - task: "Quest Board Screen & UI"
+    implemented: true
+    working: "unknown"
+    file: "/app/frontend/src/screens/QuestBoardScreen.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Quest display with progress bars, XP/gold rewards, completion status, dark anime aesthetic"
+
+  - task: "Hunter Profile Screen"
+    implemented: true
+    working: "unknown"
+    file: "/app/frontend/src/screens/HunterProfileScreen.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Character stats display, level progression, avatar tier system, XP progress bars"
+
+  - task: "Workout Dungeon Screen"
+    implemented: true
+    working: "unknown"
+    file: "/app/frontend/src/screens/WorkoutDungeonScreen.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Manual workout logging modal, quest selection, progress tracking, battle-themed UI"
+
+  - task: "Inventory Screen"
+    implemented: true
+    working: "unknown"
+    file: "/app/frontend/src/screens/InventoryScreen.tsx"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Mock inventory system with item cards, rarity colors, categories, coming soon features"
+
+  - task: "Achievements Screen"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/screens/AchievementsScreen.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need to create achievements screen with categories, progress tracking, and unlock animations"
+
+  - task: "Settings Screen"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/screens/SettingsScreen.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need to create settings screen with notifications, privacy, and account preferences"
+
+  - task: "Profile Picture Integration"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/screens/HunterProfileScreen.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need to add image picker and profile picture upload functionality"
+
+metadata:
+  created_by: "main_agent"
+  version: "2.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Achievements System Backend"
+    - "Settings System Backend"
+    - "Profile Picture System Backend"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
 agent_communication:
   - agent: "main"
     message: "Completed Phase 1 implementation: Full-stack Solo Leveling fitness RPG with auth, quest system, workout logging, and dark anime UI. Backend has JWT auth, MongoDB models, quest generation, XP/leveling system. Frontend has 4 main screens with bottom tab navigation, secure auth flow, and RPG-themed UI components. Ready for comprehensive backend testing to validate all API endpoints and business logic."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE: All 5 backend tasks tested and working perfectly! 39/39 tests passed (100% pass rate). Core functionality validated: JWT authentication, user registration/login, RPG stats initialization, daily quest generation (3 random quests from 5 templates), workout logging with progress tracking, XP rewards system, and authentication protection on protected endpoints. Backend API is fully functional and ready for production. No critical issues found."
+  - agent: "main"
+    message: "Starting Phase 2: Adding achievements system, settings functionality, and profile picture capability. Extending backend with new models and API endpoints, then implementing frontend screens. Will use local storage for profile pictures to keep app self-contained."
