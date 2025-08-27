@@ -58,7 +58,7 @@ export default function SettingsScreen() {
       const token = await user?.getIdToken();
       if (!token) return;
 
-      const response = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/settings`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/settings`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
