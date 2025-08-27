@@ -12,8 +12,30 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
+// Cross-platform storage utilities
+const StorageUtils = {
+  async getItem(key: string): Promise<string | null> {
+    if (Platform.OS === 'web') {
+      try {
+        return localStorage.getItem(key);
+      } catch (error) {
+        console.warn('localStorage not available:', error);
+        return null;
+      }
+    } else {
+      try {
+        const * as SecureStore from 'expo-secure-store';
+        return await SecureStore.getItemAsync(key);
+      } catch (error) {
+        console.warn('SecureStore not available:', error);
+        return null;
+      }
+    }
+  }
+};
 
 interface Quest {
   id: string;
