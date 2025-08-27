@@ -17,6 +17,123 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function HunterProfileScreen() {
   const { user, logout } = useAuth();
+  const navigation = useNavigation();
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [loadingImage, setLoadingImage] = useState(false);
+
+  useEffect(() => {
+    fetchProfilePicture();
+  }, []);
+
+  const fetchProfilePicture = async () => {
+    try {
+      const token = await user?.getIdToken();
+      if (!token) return;
+
+      const response = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/profile-picture`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProfilePicture(`data:${data.content_type};base64,${data.profile_picture}`);
+      }
+    } catch (error) {
+      // Profile picture doesn't exist, use default avatar
+      setProfilePicture(null);
+    }
+  };
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Sorry, we need camera roll permissions to upload a profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      uploadProfilePicture(result.assets[0].uri);
+    }
+  };
+
+  const uploadProfilePicture = async (uri: string) => {
+    setLoadingImage(true);
+    try {
+      const token = await user?.getIdToken();
+      if (!token) return;
+
+      const formData = new FormData();
+      formData.append('file', {
+        uri,
+        type: 'image/jpeg',
+        name: 'profile.jpg',
+      } as any);
+
+      const response = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/profile-picture/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        Alert.alert('Success', 'Profile picture updated successfully!');
+        fetchProfilePicture();
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      Alert.alert('Error', 'Failed to upload profile picture');
+    } finally {
+      setLoadingImage(false);
+    }
+  };
+
+  const handleProfilePicturePress = () => {
+    Alert.alert(
+      'Profile Picture',
+      'Choose an option',
+      [
+        { text: 'Select from Gallery', onPress: pickImage },
+        ...(profilePicture ? [{ 
+          text: 'Remove Picture', 
+          style: 'destructive' as const, 
+          onPress: removeProfilePicture 
+        }] : []),
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  const removeProfilePicture = async () => {
+    try {
+      const token = await user?.getIdToken();
+      if (!token) return;
+
+      const response = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/profile-picture`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        setProfilePicture(null);
+        Alert.alert('Success', 'Profile picture removed');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to remove profile picture');
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
