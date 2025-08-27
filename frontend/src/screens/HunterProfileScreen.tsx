@@ -77,7 +77,7 @@ export default function HunterProfileScreen() {
         name: 'profile.jpg',
       } as any);
 
-      const response = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/profile-picture/upload`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/profile-picture/upload`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
