@@ -146,19 +146,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (response.ok) {
-        const { access_token } = await response.json();
-        await StorageUtils.setItem('auth_token', access_token);
-        
-        const userData = await fetchUserProfile(access_token);
-        if (userData) {
-          setUser(userData);
-          setIsAuthenticated(true);
-          return true;
+        try {
+          const { access_token } = await response.json();
+          await StorageUtils.setItem('auth_token', access_token);
+          
+          const userData = await fetchUserProfile(access_token);
+          if (userData) {
+            setUser(userData);
+            setIsAuthenticated(true);
+            return true;
+          }
+        } catch (jsonError) {
+          console.error('Error parsing login response:', jsonError);
+          return false;
+        }
+      } else {
+        // Handle error response properly
+        try {
+          const errorData = await response.json();
+          console.error('Login failed:', errorData.detail || 'Invalid credentials');
+        } catch (jsonError) {
+          console.error('Login failed with status:', response.status);
         }
       }
       return false;
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Login network error:', error);
       return false;
     }
   };
@@ -174,19 +187,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (response.ok) {
-        const { access_token } = await response.json();
-        await StorageUtils.setItem('auth_token', access_token);
-        
-        const userData = await fetchUserProfile(access_token);
-        if (userData) {
-          setUser(userData);
-          setIsAuthenticated(true);
-          return true;
+        try {
+          const { access_token } = await response.json();
+          await StorageUtils.setItem('auth_token', access_token);
+          
+          const userData = await fetchUserProfile(access_token);
+          if (userData) {
+            setUser(userData);
+            setIsAuthenticated(true);
+            return true;
+          }
+        } catch (jsonError) {
+          console.error('Error parsing register response:', jsonError);
+          return false;
+        }
+      } else {
+        // Handle error response properly
+        try {
+          const errorData = await response.json();
+          console.error('Registration failed:', errorData.detail || 'Registration failed');
+        } catch (jsonError) {
+          console.error('Registration failed with status:', response.status);
         }
       }
       return false;
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error('Registration network error:', error);
       return false;
     }
   };
