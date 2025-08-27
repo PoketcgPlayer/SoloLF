@@ -388,40 +388,40 @@ frontend:
         comment: "Mock inventory system with item cards, rarity colors, categories, coming soon features"
 
   - task: "Achievements Screen"
-    implemented: false
+    implemented: true
     working: false
     file: "/app/frontend/src/screens/AchievementsScreen.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "Need to create achievements screen with categories, progress tracking, and unlock animations"
+        comment: "Created comprehensive achievements screen with categories, progress tracking, rarity system, and unlock animations. Integrated with backend API endpoints for achievements and user progress."
 
   - task: "Settings Screen"
-    implemented: false
+    implemented: true
     working: false
     file: "/app/frontend/src/screens/SettingsScreen.tsx"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "Need to create settings screen with notifications, privacy, and account preferences"
+        comment: "Created full settings screen with notification preferences, privacy controls, app preferences, and account management. Integrated with backend settings API endpoints."
 
   - task: "Profile Picture Integration"
-    implemented: false
+    implemented: true
     working: false
     file: "/app/frontend/src/screens/HunterProfileScreen.tsx"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "Need to add image picker and profile picture upload functionality"
+        comment: "Added profile picture functionality with image picker, upload, display, and removal. Updated navigation to include new screens and integrated with backend profile picture API."
 
 metadata:
   created_by: "main_agent"
