@@ -59,10 +59,10 @@ export default function AchievementsScreen() {
       if (!token) return;
 
       const [achievementsRes, userAchievementsRes] = await Promise.all([
-        fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/achievements`, {
+        fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/achievements`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/achievements/user`, {
+        fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/achievements/user`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
