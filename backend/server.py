@@ -117,7 +117,7 @@ class UserAchievement(BaseModel):
     id: str
     user_id: str
     achievement_id: str
-    unlocked_at: datetime
+    unlocked_at: Optional[datetime]
     current_progress: int
     completed: bool
 
