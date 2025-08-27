@@ -68,7 +68,7 @@ export default function WorkoutDungeonScreen() {
 
   const fetchQuests = async () => {
     try {
-      const token = await SecureStore.getItemAsync('auth_token');
+      const token = await StorageUtils.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch(`${API_BASE_URL}/api/quests`, {
