@@ -34,6 +34,59 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const API_BASE_URL = Constants.expoConfig?.extra?.apiUrl || process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8001';
 
+// Cross-platform storage utilities
+const StorageUtils = {
+  async getItem(key: string): Promise<string | null> {
+    if (Platform.OS === 'web') {
+      try {
+        return localStorage.getItem(key);
+      } catch (error) {
+        console.warn('localStorage not available:', error);
+        return null;
+      }
+    } else {
+      try {
+        return await SecureStore.getItemAsync(key);
+      } catch (error) {
+        console.warn('SecureStore not available:', error);
+        return null;
+      }
+    }
+  },
+
+  async setItem(key: string, value: string): Promise<void> {
+    if (Platform.OS === 'web') {
+      try {
+        localStorage.setItem(key, value);
+      } catch (error) {
+        console.warn('localStorage not available:', error);
+      }
+    } else {
+      try {
+        await SecureStore.setItemAsync(key, value);
+      } catch (error) {
+        console.warn('SecureStore not available:', error);
+      }
+    }
+  },
+
+  async deleteItem(key: string): Promise<void> {
+    if (Platform.OS === 'web') {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        console.warn('localStorage not available:', error);
+      }
+    } else {
+      try {
+        await SecureStore.deleteItemAsync(key);
+      } catch (error) {
+        console.warn('SecureStore not available:', error);
+      }
+    }
+  }
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
