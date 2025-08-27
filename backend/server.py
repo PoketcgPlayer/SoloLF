@@ -479,6 +479,12 @@ async def reward_user(user_id: ObjectId, xp_reward: int, gold_reward: int):
         {"_id": user_id},
         {"$set": update_data}
     )
+    
+    # Check for newly unlocked achievements
+    updated_user = await db.users.find_one({"_id": user_id})
+    newly_unlocked = await check_user_achievements(user_id, updated_user)
+    
+    return newly_unlocked
 
 # Achievement System Functions
 async def initialize_achievements():
